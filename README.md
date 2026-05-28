@@ -1,47 +1,44 @@
-﻿# ⚽ Football Tactical AI
+## 🗺️ Development Roadmap
 
-AI-powered football match analyzer that detects players, identifies team formations, and generates counter-strategies using Computer Vision and LLM.
+### Phase 1: Core Detection (Week 1)
+- [x] Project setup and structure
+- [x] LLM client integration (TinyLlama)
+- [ ] YOLO detector module
+- [ ] Video processing utilities
+- [ ] Multi-object tracking
 
-## 🎯 Project Vision
+### Phase 2: Tactical Analysis (Week 2)
+- [ ] Team classification (jersey colors)
+- [ ] Formation detection
+- [ ] Playing style analysis
+- [ ] Player heatmaps
 
-Transform football video analysis with AI:
-1. **Detect** players, ball, and referees using YOLO
-2. **Analyze** team formations and playing style
-3. **Generate** tactical counter-strategies using LLM
-4. **Output** comprehensive tactical reports
+### Phase 3: Strategy Generation (Week 2-3)
+- [ ] Tactical prompt engineering
+- [ ] Counter-strategy generation
+- [ ] Formation recommendations
 
-## 🛠️ Tech Stack
+### Phase 4: Reporting (Week 3)
+- [ ] PDF report generation
+- [ ] Statistical visualizations
+- [ ] Final integration
 
-### Computer Vision
-- **YOLO v8** - Object detection
-- **ByteTracker** - Multi-object tracking
-- **OpenCV** - Video processing
-- **Scikit-learn** - K-means for team classification
+## 🎯 Use Cases
 
-### AI & ML
-- **Hugging Face Transformers** - LLM integration
-- **Phi-3-mini** - Strategy generation (local, no API)
-- **PyTorch** - Deep learning framework
+- **Coaches**: Analyze opponent tactics and prepare counter-strategies
+- **Analysts**: Automated formation and pattern detection
+- **Scouts**: Player movement and positioning analysis
+- **Education**: Learn football tactics through AI insights
 
-### Analysis & Reporting
-- **NumPy/Pandas** - Data processing
-- **Matplotlib/Seaborn** - Visualizations
-- **ReportLab** - PDF generation
+## 🧠 How AI Powers This Project
 
-## 📁 Project Structure
+This project combines two AI domains:
 
-\\\
-football-tactical-ai/
-├── detection/          # YOLO detection & tracking
-├── analysis/           # Tactical analysis (formations, patterns)
-├── strategy/           # LLM-based counter-strategy generation
-├── reporting/          # PDF/HTML report generation
-├── utils/              # Helper utilities
-├── models/             # Pre-trained models
-├── data/               # Input videos & outputs
-├── tests/              # Unit tests
-├── ui/                 # Optional web interface
-├── main.py             # Pipeline entry point
+1. **Computer Vision (YOLO)**: Detects and tracks players, ball, and referees in real-time from match footage
+
+2. **Large Language Models (TinyLlama)**: Analyzes tactical patterns and generates human-readable counter-strategies
+
+The fusion of CV and NLP creates an intelligent system that not only sees what's happening but understands and advises on tactics.├── main.py             # Pipeline entry point
 ├── requirements.txt    # Dependencies
 └── README.md
 \\\
