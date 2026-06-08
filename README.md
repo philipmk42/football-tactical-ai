@@ -1,122 +1,132 @@
-## 🗺️ Development Roadmap
+﻿# ⚽ Football Tactical AI
 
-### Phase 1: Core Detection (Week 1)
-- [x] Project setup and structure
-- [x] LLM client integration (TinyLlama)
-- [ ] YOLO detector module
-- [ ] Video processing utilities
-- [ ] Multi-object tracking
+An AI-powered football match analyzer that detects players from video, analyzes team tactics, and generates counter-strategies using Computer Vision and a Large Language Model.
 
-### Phase 2: Tactical Analysis (Week 2)
-- [ ] Team classification (jersey colors)
-- [ ] Formation detection
-- [ ] Playing style analysis
-- [ ] Player heatmaps
+## 🎯 What It Does
 
-### Phase 3: Strategy Generation (Week 2-3)
-- [ ] Tactical prompt engineering
-- [ ] Counter-strategy generation
-- [ ] Formation recommendations
+Football Tactical AI combines two AI domains into one pipeline:
 
-### Phase 4: Reporting (Week 3)
-- [ ] PDF report generation
-- [ ] Statistical visualizations
-- [ ] Final integration
+1. **Computer Vision** detects and tracks players, identifies teams, and analyzes formations
+2. **Large Language Model** generates tactical counter-strategies based on the detected setup
 
-## 🎯 Use Cases
+The result: feed in match data, get back coaching-style recommendations on how to beat the opponent.
 
-- **Coaches**: Analyze opponent tactics and prepare counter-strategies
-- **Analysts**: Automated formation and pattern detection
-- **Scouts**: Player movement and positioning analysis
-- **Education**: Learn football tactics through AI insights
-
-## 🧠 How AI Powers This Project
-
-This project combines two AI domains:
-
-1. **Computer Vision (YOLO)**: Detects and tracks players, ball, and referees in real-time from match footage
-
-2. **Large Language Models (TinyLlama)**: Analyzes tactical patterns and generates human-readable counter-strategies
-
-The fusion of CV and NLP creates an intelligent system that not only sees what's happening but understands and advises on tactics.├── main.py             # Pipeline entry point
-├── requirements.txt    # Dependencies
-└── README.md
-\\\
-
-## 🚀 How It Works
+## 🧠 How It Works
 
 \\\
-INPUT VIDEO
-    ↓
-[Phase 1: Detection]
-YOLO detects players, ball, referee
-    ↓
-[Phase 2: Tracking]
-ByteTracker tracks objects across frames
-    ↓
-[Phase 3: Team Classification]
-K-means clusters jersey colors → teams
-    ↓
-[Phase 4: Tactical Analysis]
-- Detect formation (4-3-3, 4-4-2, etc.)
-- Analyze playing style
-- Identify attack patterns
-    ↓
-[Phase 5: Strategy Generation]
-LLM (Phi-3) generates counter-strategies
-    ↓
-[Phase 6: Reporting]
-Comprehensive PDF with stats + AI strategies
+Video Input
+    |
+    v
+[1] Detection (YOLOv8)        -> finds players & ball
+    |
+    v
+[2] Tracking (ByteTrack)      -> assigns IDs, follows players across frames
+    |
+    v
+[3] Team Classification       -> K-means on jersey colors splits into 2 teams
+    |
+    v
+[4] Tactical Analysis         -> computes formation, possession, attack side
+    |
+    v
+[5] Strategy Generation (LLM) -> TinyLlama generates counter-strategy
+    |
+    v
+[6] Report Output             -> saves a tactical analysis report
 \\\
 
-## 🎓 Features
+## 🛠️ Tech Stack
 
-### Detection & Tracking
-- [x] Player, ball, referee detection
-- [ ] Multi-object tracking
-- [ ] Team classification via jersey colors
+| Component | Technology |
+|-----------|-----------|
+| Object Detection | YOLOv8 (Ultralytics) |
+| Multi-Object Tracking | ByteTrack (Supervision) |
+| Team Classification | K-means (scikit-learn) |
+| Strategy Generation | TinyLlama (Hugging Face, runs locally) |
+| Video Processing | OpenCV |
+| Language | Python 3.10+ |
 
-### Tactical Analysis
-- [ ] Formation detection (4-3-3, 4-4-2, etc.)
-- [ ] Playing style analysis (possession vs counter)
-- [ ] Attack pattern recognition
-- [ ] Player heatmaps
-- [ ] Defensive line analysis
+## 🚀 Getting Started
 
-### AI Strategy Generation
-- [ ] LLM integration (Phi-3-mini, local)
-- [ ] Counter-formation suggestions
-- [ ] Tactical recommendations
-- [ ] Player-specific instructions
-
-### Reporting
-- [ ] PDF report generation
-- [ ] Visual heatmaps
-- [ ] Formation diagrams
-- [ ] Statistical analysis
-
-## 🏗️ Installation
+### Installation
 
 \\\ash
-# Clone repo
+# Clone the repository
 git clone https://github.com/philipmk42/football-tactical-ai.git
 cd football-tactical-ai
 
-# Create virtual environment
+# Create and activate a virtual environment
 python -m venv venv
-venv\Scripts\activate
+venv\Scripts\activate        # Windows
+# source venv/bin/activate   # Mac/Linux
 
 # Install dependencies
 pip install -r requirements.txt
 \\\
 
-## 📊 Status
+### Usage
 
-🚧 **In Active Development**
+\\\ash
+# Run in demo mode (no video required)
+python main.py --demo
 
-Building modules incrementally from scratch to deeply understand each component.
+# Run on a real match video
+python main.py --video data/input_videos/match.mp4
+\\\
+
+## 📊 Sample Output
+
+Given an opponent playing a **4-3-3 formation with 64% possession**, attacking through the right wing, the system generates:
+
+\\\
+RECOMMENDED COUNTER-STRATEGY
+
+1. Defensive Block: Organize defenders in a compact shape to deny
+   space in the final third and force long balls.
+
+2. Pressure: Press the opposition midfield and use counter-pressing
+   to win the ball back quickly.
+
+3. Advanced Passing: Use long balls to the flanks and through the
+   center to create chances for forwards.
+
+4. Counter-Attacking: Exploit the opponent's high possession by
+   breaking quickly through their defensive line.
+\\\
+
+Full reports are saved to \data/reports/\.
+
+## 📁 Project Structure
+
+\\\
+football-tactical-ai/
+├── detection/          # YOLO object detection
+├── trackers/           # Multi-object tracking (ByteTrack)
+├── team_assigner/      # Team classification (K-means)
+├── analysis/           # Tactical analysis (formation, possession)
+├── strategy/           # LLM-based strategy generation
+├── reporting/          # Report file generation
+├── utils/              # Video utilities
+├── models/             # YOLO model weights
+├── data/               # Input videos & output reports
+├── main.py             # Pipeline entry point
+└── requirements.txt    # Dependencies
+\\\
+
+## 🎓 Key Engineering Decisions
+
+- **Local LLM (TinyLlama)**: Runs fully offline with no API keys or costs, optimized for CPU inference on standard hardware.
+- **Modular pipeline**: Each stage (detection, tracking, analysis, strategy) is an independent, testable module.
+- **Caching**: Detection results are cached to avoid reprocessing during development.
+
+## 🔮 Future Improvements
+
+- [ ] Custom YOLO model trained specifically on football footage
+- [ ] RAG integration to ground strategies in a real tactics database
+- [ ] Annotated video output with player overlays
+- [ ] Web interface for uploading and analyzing matches
 
 ## 👤 Author
 
 **Philip M K**
-- GitHub: [@philipmk42](https://github.com/philipmk42)
+GitHub: [@philipmk42](https://github.com/philipmk42)
