@@ -22,12 +22,13 @@ class StrategyGenerator:
         self.llm.load_model()
         self.model_loaded = True
 
-    def generate_counter_strategy(self, team_stats):
+    def generate_counter_strategy(self, team_stats, max_tokens=350):
         '''
         Generate a counter-strategy for a given opponent setup.
 
         Args:
             team_stats: dict describing the opponent's tactics
+            max_tokens: max new tokens to generate (higher = fuller response)
 
         Returns:
             dict with the situation summary and the generated strategy
@@ -39,7 +40,7 @@ class StrategyGenerator:
         prompt = build_strategy_prompt(team_stats)
 
         print('Generating counter-strategy...')
-        strategy = self.llm.generate(prompt, max_new_tokens=200)
+        strategy = self.llm.generate(prompt, max_new_tokens=max_tokens)
 
         return {
             'situation': summary,
