@@ -26,16 +26,29 @@ class TeamAssigner:
     def get_player_color(self, frame, bbox):
         '''Extract the dominant jersey color from a player's bounding box.'''
         x1, y1, x2, y2 = [int(v) for v in bbox]
+
+        # Guard against invalid/out-of-bounds boxes
+        h, w = frame.shape[:2]
+        x1 = max(0, min(x1, w - 1))
+        x2 = max(0, min(x2, w))
+        y1 = max(0, min(y1, h - 1))
+        y2 = max(0, min(y2, h))
+
         image = frame[y1:y2, x1:x2]
 
-        # Use top half (jersey area, not shorts/legs)
-        top_half = image[0:int(image.shape[0] / 2), :]
+        # If crop is empty or too small, return a default color
+        if image.size == 0 or image.shape[0] < 2 or image.shape[1] < 2:
+            return np.array([0.0, 0.0, 0.0])
+
+        top_half = image[0:max(1, int(image.shape[0] / 2)), :]
+
+        if top_half.size == 0:
+            return np.array([0.0, 0.0, 0.0])
 
         kmeans = self._get_clustering_model(top_half)
         labels = kmeans.labels_
         clustered = labels.reshape(top_half.shape[0], top_half.shape[1])
 
-        # The corners are likely background; the other cluster is the jersey
         corners = [
             clustered[0, 0], clustered[0, -1],
             clustered[-1, 0], clustered[-1, -1],
@@ -47,10 +60,7 @@ class TeamAssigner:
         return player_color
 
     def assign_team_colors(self, frame, player_detections):
-        '''
-        Determine the two team colors from all players in a frame.
-        Call this once on a representative frame.
-        '''
+        '''Determine the two team colors from all players in a frame.'''
         player_colors = []
         for _, detection in player_detections.items():
             color = self.get_player_color(frame, detection['bbox'])
@@ -74,7 +84,7 @@ class TeamAssigner:
 
         player_color = self.get_player_color(frame, player_bbox)
         team_id = self.kmeans.predict(player_color.reshape(1, -1))[0]
-        team_id += 1  # teams are 1 and 2, not 0 and 1
+        team_id += 1
 
         self.player_team_dict[player_id] = team_id
         return team_id
