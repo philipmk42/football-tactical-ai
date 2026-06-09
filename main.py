@@ -1,13 +1,8 @@
 ﻿'''
 Football Tactical AI - Main Pipeline
 
-Runs the full analysis:
-  video -> detection -> tracking -> team classification
-  -> tactical analysis -> LLM counter-strategy -> saved report
-
-Usage:
-  python main.py --video data/input_videos/sample.mp4
-  python main.py --demo    (runs with sample data, no video needed)
+video -> detection -> tracking -> team classification
+-> ball possession -> tactical analysis -> LLM counter-strategy -> report
 '''
 
 import sys
@@ -65,6 +60,7 @@ def run_full_pipeline(video_path):
     from utils.video_utils import read_video
     from trackers.tracker import Tracker
     from team_assigner.team_assigner import TeamAssigner
+    from player_ball_assigner.player_ball_assigner import PlayerBallAssigner
 
     print('=' * 60)
     print('FOOTBALL TACTICAL AI - FULL PIPELINE')
@@ -95,20 +91,35 @@ def run_full_pipeline(video_path):
                 tracks['players'][frame_num][player_id]['team'] = team
 
     print()
-    print('[4/6] Analyzing tactics...')
+    print('[4/6] Calculating ball possession...')
+    ball_assigner = PlayerBallAssigner()
+    team_ball_control = []
+    last_team = 1
+    for frame_num, player_track in enumerate(tracks['players']):
+        ball_frame = tracks['ball'][frame_num]
+        if ball_frame and 1 in ball_frame:
+            ball_bbox = ball_frame[1]['bbox']
+            assigned_player = ball_assigner.assign_ball_to_player(
+                player_track, ball_bbox
+            )
+            if assigned_player != -1:
+                last_team = player_track[assigned_player].get('team', last_team)
+        team_ball_control.append(last_team)
+
+    print(f'  Frames with possession data: {len(team_ball_control)}')
+
+    print()
+    print('[5/6] Analyzing tactics...')
     analyzer = TacticalAnalyzer(frame_width=frames[0].shape[1])
-    team_ball_control = [1] * len(frames)
     opponent_stats = analyzer.build_team_stats(tracks, team_ball_control, team_id=1)
     print(f'  Detected: {opponent_stats}')
 
     print()
-    print('[5/6] Generating counter-strategy...')
+    print('[6/6] Generating counter-strategy...')
     generator = StrategyGenerator()
     generator.load()
     result = generator.generate_counter_strategy(opponent_stats)
 
-    print()
-    print('[6/6] Saving report...')
     report_path = generate_report(result['situation'], result['counter_strategy'])
 
     print()
