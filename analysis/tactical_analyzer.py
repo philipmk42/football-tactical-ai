@@ -1,8 +1,7 @@
 ﻿'''
 Tactical Analyzer Module
 Converts raw tracking data into tactical statistics
-(possession, formation estimate, attack side) that feed
-the strategy generator.
+(possession, formation estimate, attack side).
 '''
 
 import numpy as np
@@ -15,16 +14,7 @@ class TacticalAnalyzer:
         self.frame_width = frame_width
 
     def calculate_possession(self, team_ball_control):
-        '''
-        Calculate possession percentage per team.
-
-        Args:
-            team_ball_control: list of team IDs (1 or 2) per frame
-                               indicating which team had the ball
-
-        Returns:
-            dict {1: pct, 2: pct}
-        '''
+        '''Calculate possession percentage per team from ball control list.'''
         if not team_ball_control:
             return {1: 0, 2: 0}
 
@@ -38,20 +28,34 @@ class TacticalAnalyzer:
             2: round((team2 / total) * 100),
         }
 
+    def calculate_possession_by_position(self, tracks):
+        '''
+        Fallback possession estimate based on which team has more
+        players in the attacking half (used when ball detection is sparse).
+        '''
+        team1_count = 0
+        team2_count = 0
+
+        for frame_players in tracks['players']:
+            for _, player in frame_players.items():
+                team = player.get('team')
+                if team == 1:
+                    team1_count += 1
+                elif team == 2:
+                    team2_count += 1
+
+        total = team1_count + team2_count
+        if total == 0:
+            return {1: 50, 2: 50}
+
+        return {
+            1: round((team1_count / total) * 100),
+            2: round((team2_count / total) * 100),
+        }
+
     def estimate_attack_side(self, tracks, team_id):
-        '''
-        Estimate which side a team attacks through based on
-        average horizontal position of its players.
-
-        Args:
-            tracks: dict from the tracker
-            team_id: which team to analyze (1 or 2)
-
-        Returns:
-            'left wing', 'central', or 'right wing'
-        '''
+        '''Estimate attack side from average horizontal player position.'''
         x_positions = []
-
         for frame_players in tracks['players']:
             for _, player in frame_players.items():
                 if player.get('team') == team_id:
@@ -73,17 +77,7 @@ class TacticalAnalyzer:
             return 'central'
 
     def estimate_formation(self, num_players):
-        '''
-        Rough formation estimate based on player count.
-        (A simple heuristic - real formation detection is complex.)
-
-        Args:
-            num_players: number of outfield players detected for a team
-
-        Returns:
-            formation string
-        '''
-        # Simple mapping; with 10 outfield players assume common shapes
+        '''Rough formation estimate based on player count.'''
         if num_players >= 10:
             return '4-3-3'
         elif num_players >= 8:
@@ -94,21 +88,17 @@ class TacticalAnalyzer:
             return 'compact block'
 
     def build_team_stats(self, tracks, team_ball_control, team_id):
-        '''
-        Build the full team_stats dict expected by the strategy generator.
-
-        Args:
-            tracks: tracker output
-            team_ball_control: per-frame possession list
-            team_id: team to analyze
-
-        Returns:
-            dict with formation, possession, playing_style, attack_side
-        '''
+        '''Build the full team_stats dict for the strategy generator.'''
         possession = self.calculate_possession(team_ball_control)
+
+        # If ball-based possession is unreliable (one team at 0),
+        # fall back to position-based estimate.
+        if possession.get(1, 0) == 0 or possession.get(2, 0) == 0:
+            print('  Ball detection sparse - using position-based possession estimate')
+            possession = self.calculate_possession_by_position(tracks)
+
         attack_side = self.estimate_attack_side(tracks, team_id)
 
-        # Count max players seen for this team in any frame
         max_players = 0
         for frame_players in tracks['players']:
             count = sum(1 for p in frame_players.values()
@@ -117,8 +107,7 @@ class TacticalAnalyzer:
 
         formation = self.estimate_formation(max_players)
 
-        # Infer style from possession
-        team_possession = possession.get(team_id, 0)
+        team_possession = possession.get(team_id, 50)
         if team_possession > 55:
             style = 'possession-based'
         elif team_possession < 45:
